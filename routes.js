@@ -3,7 +3,15 @@ window.HashRegexRouter = new function () {
   var routes = _([])
 
   self.match = function (route) {
-    routes.push(route)
+    if (typeof route === 'Array') {
+      _(route).each(function (r) {
+        self.match(r)
+      })
+    } else {
+      routes.push(route)
+    }
+
+    return self
   }
 
   self.start = function () {
