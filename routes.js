@@ -51,36 +51,3 @@ window.HashRegexRouter = new function () {
     handler();
   }
 }
-
-var test_routes  = function () {
-  HashRegexRouter.match({
-    regex: /^#!\/scenes$/,
-    callback: function () {
-      alert('/scenes')
-    },
-    around: function (callback, args) {
-      alert('around before')
-      callback.apply(callback, args)
-      alert('around after')
-    },
-    before: function () {
-      alert('before')
-    },
-    after: function () {
-      alert('after')
-    }
-  })
-
-  HashRegexRouter.match({
-    regex: /^#!\/scenes\/([0-9]+)$/,
-    callback: function (id) {
-      alert('/scenes/' + id);
-    }
-  })
-  HashRegexRouter.match({
-    regex: /.*/,
-    callback: function () {
-      alert('/.*/')
-    }
-  })
-}
