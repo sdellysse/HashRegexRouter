@@ -1,0 +1,77 @@
+window.HashRegexRouter = ->
+    Singleton = ->
+        @routes = _ []
+
+    Singleton.prototype.match = (route_or_array) ->
+        if _(route_or_array).isArray()
+            @match_array route_or_array
+        else
+            @match_route route_or_array
+
+        return @
+
+    Singleton.prototype.match_array = (array) ->
+        _(array).each (item) =>
+            @match item
+
+    Singleton.prototype.match_route = (route) ->
+        @routes.push route
+
+    Singleton.prototype.hash_change_handler = ->
+        route_has_been_found = false
+        hash = window.location.hash
+
+        @routes.each (route) =>
+            return if route_has_been_found
+
+            matches = hash.match route.regex
+            if matches
+                route_has_been_found = true
+
+                callback_argmuents = do _(matches).rest
+                around_arguments = _(callback_argmuents).unshift route.callback
+
+                if 'hooks' in route
+                    if 'around' in route.hooks
+                        route.hooks.around.apply null, around_arguments
+                    else
+                        if 'before' in route.hooks
+                            route.hooks.before.apply null, callback_argmuents
+
+                        route.callback.apply null, callback_argmuents
+
+                        if 'after' in route.hooks
+                            route.hooks.after.apply null, callback_argmuents
+                else
+                    route.callback.apply null, callback_argmuents
+
+    Singleton.prototype.start = ->
+        jQuery(document).ready =>
+            jQuery(window).hashchange =>
+                @hash_change_handler
+        @hash_change_handler
+
+    do new Singleton
+
+HashRegexRouter.match
+    regex: /^#!\/scenes$/
+    callback: ->
+        alert '/scenes'
+    hooks:
+        around: (callback) ->
+            alert 'around before'
+            do callback
+            alert 'around after'
+HashRegexRouter.match
+    regex: /^#!\/scenes/(\d+)$/
+    callback: (id) ->
+        alert "/scenes/#{id}"
+    hooks:
+        before: (id) ->
+            alert 'before'
+        after: (id) ->
+            alert 'after'
+HashRegexRouter.match
+    regex: /.*/
+    callback: ->
+        alert 'no route found, fell through'
